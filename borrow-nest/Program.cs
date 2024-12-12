@@ -3,14 +3,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using cutz_backend.Models;
-using cutz_backend.Services;
+using borrow_nest.Models;
+using borrow_nest.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<CutzContext>(options =>
+builder.Services.AddDbContext<BNContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("BNDatabase"),
         npgsqlOptions => npgsqlOptions.CommandTimeout(300)
@@ -19,8 +19,8 @@ builder.Services.AddDbContext<CutzContext>(options =>
 // .LogTo(Console.WriteLine)
 );
 
-builder.Services.AddIdentity<CutzUser, IdentityRole>()
-    .AddEntityFrameworkStores<CutzContext>()
+builder.Services.AddIdentity<BNUser, IdentityRole>()
+    .AddEntityFrameworkStores<BNContext>()
     .AddDefaultTokenProviders();
 
 // Configure JWT Authentication
