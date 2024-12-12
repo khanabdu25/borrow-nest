@@ -16,4 +16,8 @@ public class BNContext : IdentityDbContext
 
     public DbSet<ClientCheckInLog> ClientCheckIns { get; set; }
 
+    public DbSet<Listing> Listings { get; set; }
+
+    public DbSet<Product> Products { get; set; }
+
 }
