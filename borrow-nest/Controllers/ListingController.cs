@@ -24,14 +24,14 @@ public class ListingController : ControllerBase
     }
 
     [HttpGet("all")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "USER")]
     public async Task<IActionResult> GetAll()
     {
         var events = await _context.Listings.ToListAsync();
         return Ok(events);
     }
 
-    [HttpPost]
+    [HttpPost("create")]
     [Authorize(Roles = "USER")]
     public async Task<IActionResult> CreateListing([FromBody] CreateListingRequest request)
     {
