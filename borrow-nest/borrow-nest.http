@@ -1,0 +1,6 @@
+@borrow_nest_HostAddress = http://localhost:5155
+
+GET {{borrow_nest_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,82 @@
+# macOS-specific files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows-specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python-specific files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# Editor files
+.vscode/
+.idea/
+*.sublime-workspace
+
+# ASP.NET-specific files
+bin/
+obj/
+*.user
+*.rsuser
+*.suo
+*.pdb
+
+# Environment files
+.env
+
+# Build files
+dist/
+build/
+*.dll
+*.exe
+
+# Temporary files
+*.swp
+*~
+
+# Coverage reports
+coverage/
+*.lcov
+*.lcov.info
+
+# Package archives
+*.tgz
+*.zip
+*.tar.gz
+
+# System files
+*.bak
+*.tmp
+
+# Generated files
+*.iml
+*.iws
+*.class
+
+# Lock files
+package-lock.json
+yarn.lock
+
+appsettings.Development.json
+appsettings.json
