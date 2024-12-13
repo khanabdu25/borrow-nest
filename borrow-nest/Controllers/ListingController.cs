@@ -27,8 +27,10 @@ public class ListingController : ControllerBase
     [Authorize(Roles = "USER")]
     public async Task<IActionResult> GetAll()
     {
-        var events = await _context.Listings.ToListAsync();
-        return Ok(events);
+        var listings = await _context.Listings
+                                 .Include(l => l.Product)
+                                 .ToListAsync();
+        return Ok(listings);
     }
 
     [HttpPost("create")]
