@@ -37,14 +37,12 @@ public class ListingController : ControllerBase
     {
         try
         {
-            // Get the current user using the provided _roleChecker method
             BNUser user = await _roleChecker.GetCurrentUserAsync();
             if (user == null)
             {
                 return Unauthorized("User must be logged in to create a listing.");
             }
 
-            // Create and populate the product from the request
             Product product = new Product
             {
                 Status = request.Product.Status,
@@ -54,13 +52,14 @@ public class ListingController : ControllerBase
                 MonthlyRate = request.Product.MonthlyRate
             };
 
-            // Create and populate the listing with the associated product
+
             Listing listing = new Listing
             {
                 Title = request.Title,
                 Body = request.Body,
-                BNUser = user,  // Associate the current user with the listing
-                Product = product  // Associate the product with the listing
+                BNUser = user,
+                Product = product,
+                Status = ListingStatus.AVAILABLE
             };
 
             _context.Products.Add(product);
@@ -88,6 +87,13 @@ public class ListingController : ControllerBase
             return NotFound("Listing not found.");
         }
 
+        if (listing.Status == ListingStatus.CLAIMED)
+        {
+            return BadRequest("This listing is currently borrowed");
+        }
+
+        listing.Status = ListingStatus.CLAIMED;
+
         var payment = new Payment
         {
             Amount = request.Amount,
@@ -101,6 +107,27 @@ public class ListingController : ControllerBase
         return Ok($"${request.Amount} was paid to {listing.BNUser.UserName}, initiating rental.");
     }
 
+    [HttpPost("return")]
+    public async Task<IActionResult> Return([FromBody] ReturnListingRequest request)
+    {
+        var listing = await _context.Listings
+                                    .Include(l => l.BNUser)
+                                    .FirstOrDefaultAsync(l => l.ID == request.ListingId);
 
+        if (listing == null)
+        {
+            return NotFound("Listing not found.");
+        }
+
+        if (listing.Status == ListingStatus.AVAILABLE)
+        {
+            return BadRequest("This listing is already marked as available.");
+        }
+
+        listing.Status = ListingStatus.AVAILABLE;
+        await _context.SaveChangesAsync();
+
+        return Ok($"Listing {request.ListingId} has been returned and is now available.");
+    }
 
 }
