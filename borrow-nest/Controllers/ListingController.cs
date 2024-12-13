@@ -76,6 +76,31 @@ public class ListingController : ControllerBase
         }
     }
 
+    [HttpPost("checkout")]
+    public async Task<IActionResult> Checkout([FromBody] PaymentRequest request)
+    {
+        var listing = await _context.Listings
+                                    .Include(l => l.BNUser)
+                                    .FirstOrDefaultAsync(l => l.ID == request.ListingId);
+
+        if (listing == null)
+        {
+            return NotFound("Listing not found.");
+        }
+
+        var payment = new Payment
+        {
+            Amount = request.Amount,
+            Listing = listing,
+            Recipient = listing.BNUser
+        };
+
+        _context.Payments.Add(payment);
+        await _context.SaveChangesAsync();
+
+        return Ok($"${request.Amount} was paid to {listing.BNUser.UserName}, initiating rental.");
+    }
+
 
 
 }

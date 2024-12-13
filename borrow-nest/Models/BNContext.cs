@@ -20,4 +20,6 @@ public class BNContext : IdentityDbContext
 
     public DbSet<Product> Products { get; set; }
 
+    public DbSet<Payment> Payments { get; set; }
+
 }
