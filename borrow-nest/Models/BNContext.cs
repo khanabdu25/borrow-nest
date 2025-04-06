@@ -22,4 +22,6 @@ public class BNContext : IdentityDbContext
 
     public DbSet<Payment> Payments { get; set; }
 
+    public DbSet<CarListing> CarListings { get; set; }
+
 }
