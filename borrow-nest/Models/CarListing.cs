@@ -10,6 +10,11 @@ public class CarListing
     public string Availability { get; set; }
     public string PickUpLocation { get; set; }
 
+    public DateTime? ReservedStartDate { get; set; }
+    public DateTime? ReservedEndDate { get; set; }
+
+    public CarStatus Status { get; set; } = CarStatus.Available;
+
     public enum CarStatus
     {
         Available,

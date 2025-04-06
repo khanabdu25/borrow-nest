@@ -24,4 +24,6 @@ public class BNContext : IdentityDbContext
 
     public DbSet<CarListing> CarListings { get; set; }
 
+    public DbSet<Booking> Bookings { get; set; }
+
 }
