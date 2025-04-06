@@ -24,17 +24,20 @@ namespace borrow_nest.Controllers
         public async Task<IActionResult> BookCar([FromBody] BookCarRequest request)
         {
             var car = await _context.CarListings
-                                    .FirstOrDefaultAsync(c => c.Model == request.CarModel && c.Status == CarListing.CarStatus.Available);
+                            .FirstOrDefaultAsync(c => c.Id == request.ListingId && c.Status == CarListing.CarStatus.Available);
 
             if (car == null)
             {
                 return NotFound("Car not available.");
             }
 
+            var startDateUtc = request.StartDate.ToUniversalTime();
+            var endDateUtc = request.EndDate.ToUniversalTime();
+
             // Check availability for the car
             if (car.ReservedStartDate.HasValue && car.ReservedEndDate.HasValue &&
-                ((request.StartDate < car.ReservedEndDate && request.StartDate >= car.ReservedStartDate) ||
-                (request.EndDate <= car.ReservedEndDate && request.EndDate > car.ReservedStartDate)))
+                ((startDateUtc < car.ReservedEndDate && startDateUtc >= car.ReservedStartDate) ||
+                (endDateUtc <= car.ReservedEndDate && endDateUtc > car.ReservedStartDate)))
             {
                 return BadRequest("The car is already booked for the selected dates.");
             }
@@ -54,15 +57,15 @@ namespace borrow_nest.Controllers
                 Car = car,
                 Renter = renter,
                 Owner = owner,
-                StartDate = request.StartDate,
-                EndDate = request.EndDate,
-                TotalPrice = (decimal)(request.EndDate - request.StartDate).TotalDays * car.PricePerDay,
+                StartDate = startDateUtc,
+                EndDate = endDateUtc,
+                TotalPrice = (decimal)(endDateUtc - startDateUtc).TotalDays * car.PricePerDay,
                 Status = Booking.BookingStatus.Pending
             };
 
             car.Status = CarListing.CarStatus.Booked;
-            car.ReservedStartDate = request.StartDate;
-            car.ReservedEndDate = request.EndDate;
+            car.ReservedStartDate = startDateUtc;
+            car.ReservedEndDate = endDateUtc;
 
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
