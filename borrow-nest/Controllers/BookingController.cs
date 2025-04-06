@@ -6,7 +6,7 @@ using borrow_nest.Services;
 namespace borrow_nest.Controllers
 {
     [ApiController]
-    [Route("api/booking")]
+    [Route("bookings")]
     public class BookingController : ControllerBase
     {
         private readonly ILogger<BookingController> _logger;
