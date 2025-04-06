@@ -77,6 +77,45 @@ public class ListingController : ControllerBase
         }
     }
 
+    [HttpPost("new")]
+    [Authorize(Roles = "USER")]
+    public async Task<IActionResult> CreateCarListing([FromBody] CreateCarListingRequest request)
+    {
+        try
+        {
+            // Ensure the user is logged in
+            var user = await _roleChecker.GetCurrentUserAsync();
+            if (user == null)
+            {
+                return Unauthorized("User must be logged in to create a car listing.");
+            }
+
+            // Use the Builder pattern to create the car listing and set the seller to the logged-in user
+            var carListing = new CarListing.Builder()
+                .SetModel(request.Model)
+                .SetYear(request.Year)
+                .SetMileage(request.Mileage)
+                .SetLocation(request.Location)
+                .SetPricePerDay(request.PricePerDay)
+                .SetAvailability(request.Availability)
+                .SetPickUpLocation(request.PickUpLocation)
+                .SetSeller(user)
+                .Build();
+
+            // Add the car listing to the database
+            _context.CarListings.Add(carListing);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Car listing created successfully", listingId = carListing.Id });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create car listing");
+            return StatusCode(500, "Internal server error while creating car listing");
+        }
+    }
+
+
     [HttpPost("checkout")]
     public async Task<IActionResult> Checkout([FromBody] PaymentRequest request)
     {
