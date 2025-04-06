@@ -9,11 +9,10 @@ public class CarListing
     public decimal PricePerDay { get; set; }
     public string Availability { get; set; }
     public string PickUpLocation { get; set; }
-
+    public CarStatus Status { get; set; }
     public DateTime? ReservedStartDate { get; set; }
     public DateTime? ReservedEndDate { get; set; }
-
-    public CarStatus Status { get; set; } = CarStatus.Available;
+    public BNUser Seller { get; set; }
 
     public enum CarStatus
     {
@@ -22,7 +21,6 @@ public class CarListing
         Unavailable
     }
 
-    // Builder class to construct the CarListing
     public class Builder
     {
         private string model;
@@ -32,6 +30,7 @@ public class CarListing
         private decimal pricePerDay;
         private string availability;
         private string pickUpLocation;
+        private BNUser seller;
 
         public Builder SetModel(string model)
         {
@@ -75,6 +74,12 @@ public class CarListing
             return this;
         }
 
+        public Builder SetSeller(BNUser seller)
+        {
+            this.seller = seller;
+            return this;
+        }
+
         public CarListing Build()
         {
             return new CarListing
@@ -85,7 +90,8 @@ public class CarListing
                 Location = this.location,
                 PricePerDay = this.pricePerDay,
                 Availability = this.availability,
-                PickUpLocation = this.pickUpLocation
+                PickUpLocation = this.pickUpLocation,
+                Seller = this.seller
             };
         }
     }
