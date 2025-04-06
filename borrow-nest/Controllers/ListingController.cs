@@ -33,6 +33,19 @@ public class ListingController : ControllerBase
         return Ok(listings);
     }
 
+    [HttpGet("cars")]
+    [Authorize(Roles = "USER")]
+    public async Task<IActionResult> GetAvailableCars()
+    {
+        var listings = await _context.CarListings
+                                     .Where(l => l.Status == CarListing.CarStatus.Available)
+                                     .Include(l => l.Seller)
+                                     .ToListAsync();
+
+        return Ok(listings);
+    }
+
+
     [HttpPost("create")]
     [Authorize(Roles = "USER")]
     public async Task<IActionResult> CreateListing([FromBody] CreateListingRequest request)

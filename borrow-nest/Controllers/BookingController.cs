@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using borrow_nest.Models;
 using borrow_nest.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace borrow_nest.Controllers
 {
@@ -21,6 +22,7 @@ namespace borrow_nest.Controllers
         }
 
         [HttpPost("bookcar")]
+        [Authorize(Roles = "USER")]
         public async Task<IActionResult> BookCar([FromBody] BookCarRequest request)
         {
             var car = await _context.CarListings
@@ -72,5 +74,51 @@ namespace borrow_nest.Controllers
 
             return Ok(new { message = "Booking confirmed", bookingId = booking.Id });
         }
+
+        [HttpPost("returncar")]
+        [Authorize(Roles = "USER")]
+        public async Task<IActionResult> ReturnCar([FromBody] ReturnCarRequest request)
+        {
+            try
+            {
+                // Get the booking based on the BookingId
+                var booking = await _context.Bookings
+                                             .Include(b => b.Car)
+                                             .FirstOrDefaultAsync(b => b.Id == request.BookingId);
+
+                if (booking == null)
+                {
+                    return NotFound("Booking not found.");
+                }
+
+                // Check if the car is already returned or not booked
+                if (booking.Status == Booking.BookingStatus.Completed || booking.Status == Booking.BookingStatus.Canceled)
+                {
+                    return BadRequest("This booking has already been completed or canceled.");
+                }
+
+                // Mark the booking as completed (or you can cancel it)
+                booking.Status = Booking.BookingStatus.Completed;
+
+                // Make the car listing available again
+                var car = booking.Car;
+                car.Status = CarListing.CarStatus.Available;
+                car.ReservedStartDate = null;
+                car.ReservedEndDate = null;
+
+                // Update the booking and car listing in the database
+                _context.Bookings.Update(booking);
+                _context.CarListings.Update(car);
+                await _context.SaveChangesAsync();
+
+                return Ok("Car has been successfully returned and is now available.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while returning the car.");
+                return StatusCode(500, "Internal server error while processing return.");
+            }
+        }
+
     }
 }
