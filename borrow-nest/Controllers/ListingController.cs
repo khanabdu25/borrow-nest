@@ -136,7 +136,17 @@ public class ListingController : ControllerBase
             _context.CarListings.Add(carListing);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Car listing created successfully", listingId = carListing.Id });
+            var cars = await _context.CarListings
+                .Where(c => c.Seller.Id == user.Id)
+                .Include(c => c.Seller)
+                .ToListAsync();
+
+            if (cars == null || cars.Count == 0)
+            {
+                return NotFound(new { message = "No cars found for this user." });
+            }
+
+            return Ok(cars);
         }
         catch (Exception ex)
         {
