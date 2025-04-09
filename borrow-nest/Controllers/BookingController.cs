@@ -93,6 +93,33 @@ namespace borrow_nest.Controllers
             }
         }
 
+        [HttpGet("mine")]
+        [Authorize(Roles = "USER")]
+        public async Task<IActionResult> GetMyBookings()
+        {
+            // Get the currently logged-in user (either as renter or owner)
+            BNUser currentUser = await _roleChecker.GetCurrentUserAsync();
+            if (currentUser == null)
+            {
+                return Unauthorized("User must be logged in to view bookings.");
+            }
+
+            // Fetch bookings where the current user is either the renter or the owner
+            var bookings = await _context.Bookings
+                .Where(b => b.Renter.Id == currentUser.Id)
+                .Include(b => b.Car)
+                .Include(b => b.Renter)
+                .Include(b => b.Owner)
+                .ToListAsync();
+
+            if (bookings == null || bookings.Count == 0)
+            {
+                return NotFound(new { message = "No bookings found for this user." });
+            }
+
+            return Ok(bookings);
+        }
+
         [HttpPost("returncar")]
         [Authorize(Roles = "USER")]
         public async Task<IActionResult> ReturnCar([FromBody] ReturnCarRequest request)
