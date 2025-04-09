@@ -72,7 +72,25 @@ namespace borrow_nest.Controllers
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Booking confirmed", bookingId = booking.Id });
+            var fullBooking = await _context.Bookings
+                .Include(b => b.Car)
+                .Include(b => b.Renter)
+                .Include(b => b.Owner)
+                .FirstOrDefaultAsync(b => b.Id == booking.Id);
+
+            // Check if the booking was found and return it
+            if (fullBooking != null)
+            {
+                return Ok(new
+                {
+                    message = "Booking confirmed",
+                    booking = fullBooking
+                });
+            }
+            else
+            {
+                return NotFound(new { message = "Booking not found" });
+            }
         }
 
         [HttpPost("returncar")]
