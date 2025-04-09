@@ -45,6 +45,23 @@ public class ListingController : ControllerBase
         return Ok(listings);
     }
 
+    [HttpGet("cars/{id}")]
+    [Authorize(Roles = "USER")]
+    public async Task<IActionResult> GetCarById(int id)
+    {
+        var carListing = await _context.CarListings
+                                       .Where(l => l.Id == id)
+                                       .Include(l => l.Seller)
+                                       .FirstOrDefaultAsync();
+
+        if (carListing == null)
+        {
+            return NotFound($"Car listing with ID {id} not found.");
+        }
+
+        return Ok(carListing);
+    }
+
 
     [HttpPost("create")]
     [Authorize(Roles = "USER")]
