@@ -151,7 +151,9 @@ namespace borrow_nest.Controllers
 
             // Fetch bookings where the current user is either the renter or the owner
             var bookings = await _context.Bookings
-                .Where(b => b.Renter.Id == currentUser.Id)
+                .Where(b => b.Renter.Id == currentUser.Id
+                        && b.Status != Booking.BookingStatus.Completed
+                        && b.Status != Booking.BookingStatus.Canceled)
                 .Include(b => b.Car)
                 .Include(b => b.Renter)
                 .Include(b => b.Owner)
