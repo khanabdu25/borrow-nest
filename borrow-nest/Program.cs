@@ -56,6 +56,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<RoleCheckerService>();
+builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<BalanceService>();
 
 builder.Services.AddEndpointsApiExplorer();
 
