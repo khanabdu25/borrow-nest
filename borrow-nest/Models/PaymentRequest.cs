@@ -4,4 +4,6 @@ public class PaymentRequest
 {
     public decimal Amount { get; set; }
     public long ListingId { get; set; }
+
+    public long BookingId { get; set; }
 }

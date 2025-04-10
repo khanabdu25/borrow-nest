@@ -18,12 +18,15 @@ public class UserController : ControllerBase
 
     private readonly RoleCheckerService _roleChecker;
 
-    public UserController(ILogger<UserController> logger, BNContext context, UserManager<BNUser> userManager, RoleCheckerService roleChecker)
+    private readonly BalanceService _balanceService;
+
+    public UserController(ILogger<UserController> logger, BNContext context, UserManager<BNUser> userManager, RoleCheckerService roleChecker, BalanceService balanceService)
     {
         _logger = logger;
         _context = context;
         _userManager = userManager;
         _roleChecker = roleChecker;
+        _balanceService = balanceService;
     }
 
     [HttpGet("all")]
@@ -56,5 +59,23 @@ public class UserController : ControllerBase
         }
 
         return user;
+    }
+
+    [HttpGet("balance")]
+    [Authorize(Roles = "USER")]
+    public async Task<IActionResult> GetBalance()
+    {
+        // Get the current logged-in user
+        var currentUser = await _roleChecker.GetCurrentUserAsync();
+
+        if (currentUser == null)
+        {
+            return Unauthorized("User must be logged in to view the balance.");
+        }
+
+        // Call the balance service to fetch the user's balance
+        var balance = await _balanceService.GetUserBalanceAsync(currentUser.Id);
+
+        return Ok(new { balance });
     }
 }

@@ -14,8 +14,11 @@ namespace borrow_nest.Controllers
         private readonly BNContext _context;
         private readonly RoleCheckerService _roleChecker;
 
-        public BookingController(ILogger<BookingController> logger, BNContext context, RoleCheckerService roleChecker)
+        private readonly PaymentService _paymentService;
+
+        public BookingController(ILogger<BookingController> logger, BNContext context, RoleCheckerService roleChecker, PaymentService paymentService)
         {
+            _paymentService = paymentService;
             _logger = logger;
             _context = context;
             _roleChecker = roleChecker;
@@ -91,6 +94,44 @@ namespace borrow_nest.Controllers
             {
                 return NotFound(new { message = "Booking not found" });
             }
+        }
+
+        // New endpoint for initiating payment and confirming booking
+        [HttpPost("initiate")]
+        [Authorize(Roles = "USER")]
+        public async Task<IActionResult> InitiatePayment([FromBody] PaymentRequest paymentRequest)
+        {
+            // Process payment (mocked payment gateway)
+            var paymentSuccess = await _paymentService.ProcessPaymentAsync(paymentRequest);
+
+            if (!paymentSuccess)
+            {
+                return BadRequest(new { message = "Payment failed. Please try again." });
+            }
+
+            var bookingConfirmed = false;
+
+            // Confirm the booking once payment is successful
+            var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == paymentRequest.BookingId);
+
+            if (booking == null)
+            {
+                bookingConfirmed = false;
+            }
+            else
+            {
+                booking.Status = Booking.BookingStatus.Confirmed;
+                await _context.SaveChangesAsync();
+                bookingConfirmed = true;
+            }
+
+            if (!bookingConfirmed)
+            {
+                return NotFound(new { message = "Booking not found or could not be confirmed." });
+            }
+
+            // Return success response
+            return Ok(new { message = "Payment processed and booking confirmed." });
         }
 
         [HttpGet("mine")]
