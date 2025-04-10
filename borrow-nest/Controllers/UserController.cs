@@ -78,4 +78,47 @@ public class UserController : ControllerBase
 
         return Ok(new { balance });
     }
+
+    [HttpPost("balance/add")]
+    [Authorize(Roles = "USER")]
+    public async Task<IActionResult> AddBalance([FromBody] PaymentRequest paymentRequest)
+    {
+        try
+        {
+            var loggedInUser = await _roleChecker.GetCurrentUserAsync();
+            if (loggedInUser == null)
+            {
+                return Unauthorized("User must be logged in to add balance.");
+            }
+
+            // Find the service user by their email
+            var serviceUser = await _context.BNUsers
+                .FirstOrDefaultAsync(u => u.NormalizedEmail == "ABDULTA@UMICH.EDU");
+            if (serviceUser == null)
+            {
+                return NotFound("Service user not found.");
+            }
+
+            // Create a new payment where the service user is the sender
+            var payment = new Payment
+            {
+                Recipient = loggedInUser,
+                Amount = -paymentRequest.Amount,
+                Sender = serviceUser,
+                Booking = null,
+            };
+
+            // Add the payment record to the database
+            _context.Payments.Add(payment);
+            await _context.SaveChangesAsync();
+
+            // Return success message
+            return Ok(new { message = "Balance added successfully." });
+        }
+        catch (Exception ex)
+        {
+            // Log error and return failure message
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
 }
