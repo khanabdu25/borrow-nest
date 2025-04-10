@@ -1,19 +1,24 @@
 namespace borrow_nest.Services;
+using borrow_nest.Models;
+using Microsoft.Extensions.Options;
 
 public class EmailNotificationObserver : INotificationObserver
 {
     private readonly IEmailSender _emailSender;
-    public string UserType { get; set; }  // Used to determine whether it's the renter or owner
+    private readonly EmailSettings _emailSettings;
 
-    public EmailNotificationObserver(IEmailSender emailSender, string userType)
+    public string UserType { get; set; }
+
+    // Modify constructor to use IOptions for EmailSettings
+    public EmailNotificationObserver(IEmailSender emailSender, IOptions<EmailSettings> emailSettings)
     {
         _emailSender = emailSender;
-        UserType = userType;
+        _emailSettings = emailSettings.Value;
     }
 
     public async Task NotifyAsync(string message, string emailAddress)
     {
-        // Send an email to the respective address (renter or owner)
+        // Use _emailSettings.FromEmail (for example) as the sender's email address
         await _emailSender.SendEmailAsync(emailAddress, "Booking Status Update", message);
     }
 }

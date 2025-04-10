@@ -10,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
+builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<INotificationObserver, EmailNotificationObserver>();
+
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<BNContext>(options =>
@@ -60,9 +63,6 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<RoleCheckerService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<BalanceService>();
-builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
-builder.Services.AddScoped<INotificationObserver, EmailNotificationObserver>();
-builder.Services.AddSingleton<IEmailSender, EmailSender>();
 
 builder.Services.AddEndpointsApiExplorer();
 

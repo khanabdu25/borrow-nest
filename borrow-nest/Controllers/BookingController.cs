@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using borrow_nest.Models;
 using borrow_nest.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 
 namespace borrow_nest.Controllers
 {
@@ -18,14 +19,17 @@ namespace borrow_nest.Controllers
 
         private readonly IEmailSender _emailSender;
 
+        private readonly IOptions<EmailSettings> _emailSettings;
 
-        public BookingController(ILogger<BookingController> logger, BNContext context, RoleCheckerService roleChecker, PaymentService paymentService, IEmailSender emailSender)
+
+        public BookingController(ILogger<BookingController> logger, BNContext context, RoleCheckerService roleChecker, PaymentService paymentService, IEmailSender emailSender, IOptions<EmailSettings> emailSettings)
         {
             _paymentService = paymentService;
             _logger = logger;
             _context = context;
             _roleChecker = roleChecker;
             _emailSender = emailSender;
+            _emailSettings = emailSettings;
 
         }
 
@@ -78,8 +82,11 @@ namespace borrow_nest.Controllers
                 Status = Booking.BookingStatus.Pending
             };
 
-            var renterObserver = new EmailNotificationObserver(_emailSender, "Renter");
-            var ownerObserver = new EmailNotificationObserver(_emailSender, "Owner");
+            var renterObserver = new EmailNotificationObserver(_emailSender, _emailSettings);
+            renterObserver.UserType = "Renter";
+
+            var ownerObserver = new EmailNotificationObserver(_emailSender, _emailSettings);
+            ownerObserver.UserType = "Owner";
 
             booking.RegisterObservers(renterObserver, ownerObserver);
 

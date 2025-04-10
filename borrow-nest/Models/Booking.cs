@@ -1,6 +1,8 @@
 namespace borrow_nest.Models
 {
     using borrow_nest.Services;
+    using System.ComponentModel.DataAnnotations.Schema;
+
     public class Booking
     {
         public int Id { get; set; }
@@ -12,6 +14,7 @@ namespace borrow_nest.Models
         public decimal TotalPrice { get; set; }
         public BookingStatus Status { get; set; }
 
+        [NotMapped]
         public List<INotificationObserver> Observers { get; set; } = new List<INotificationObserver>();
 
         public void RegisterObservers(INotificationObserver renterObserver, INotificationObserver ownerObserver)
