@@ -18,8 +18,10 @@ namespace borrow_nest.Services
         {
             // Get the total amount the user has received (positive amounts as recipient)
             var receivedAmount = await _context.Payments
-                .Where(p => p.Recipient.Id == userId && p.Amount > 0)
+                .Where(p => p.Recipient.Id == userId && p.Amount < 0)
                 .SumAsync(p => p.Amount);
+
+            receivedAmount = Math.Abs(receivedAmount);
 
             Console.WriteLine($"Received Amount: {receivedAmount}");
 

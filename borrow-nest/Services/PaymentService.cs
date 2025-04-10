@@ -24,7 +24,7 @@ public class PaymentService(BNContext context, RoleCheckerService roleChecker)
         var payment = new Payment
         {
             Recipient = fullBooking.Owner,
-            Amount = paymentRequest.Amount,
+            Amount = -paymentRequest.Amount,
             Booking = fullBooking,
             Sender = loggedInUser,
 
