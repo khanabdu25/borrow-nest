@@ -152,6 +152,14 @@ namespace borrow_nest.Controllers
             await _context.SaveChangesAsync();
             bookingConfirmed = true;
 
+            var renterObserver = new EmailNotificationObserver(_emailSender, _emailSettings);
+            renterObserver.UserType = "Renter";
+
+            var ownerObserver = new EmailNotificationObserver(_emailSender, _emailSettings);
+            ownerObserver.UserType = "Owner";
+
+            booking.RegisterObservers(renterObserver, ownerObserver);
+
             await booking.ChangeStatus(Booking.BookingStatus.Confirmed);
 
             if (!bookingConfirmed)
@@ -227,6 +235,14 @@ namespace borrow_nest.Controllers
                 _context.Bookings.Update(booking);
                 _context.CarListings.Update(car);
                 await _context.SaveChangesAsync();
+
+                var renterObserver = new EmailNotificationObserver(_emailSender, _emailSettings);
+                renterObserver.UserType = "Renter";
+
+                var ownerObserver = new EmailNotificationObserver(_emailSender, _emailSettings);
+                ownerObserver.UserType = "Owner";
+
+                booking.RegisterObservers(renterObserver, ownerObserver);
 
                 await booking.ChangeStatus(Booking.BookingStatus.Completed);
 
