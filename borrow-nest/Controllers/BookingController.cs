@@ -101,6 +101,16 @@ namespace borrow_nest.Controllers
         [Authorize(Roles = "USER")]
         public async Task<IActionResult> InitiatePayment([FromBody] PaymentRequest paymentRequest)
         {
+            var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == paymentRequest.BookingId);
+
+            if (booking == null)
+            {
+                return NotFound(new { message = "Booking not found." });
+            }
+            if (booking.Status != Booking.BookingStatus.Pending)
+            {
+                return BadRequest(new { message = "Booking is not in a valid state for payment." });
+            }
             // Process payment (mocked payment gateway)
             var paymentSuccess = await _paymentService.ProcessPaymentAsync(paymentRequest);
 
@@ -112,18 +122,12 @@ namespace borrow_nest.Controllers
             var bookingConfirmed = false;
 
             // Confirm the booking once payment is successful
-            var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == paymentRequest.BookingId);
 
-            if (booking == null)
-            {
-                bookingConfirmed = false;
-            }
-            else
-            {
-                booking.Status = Booking.BookingStatus.Confirmed;
-                await _context.SaveChangesAsync();
-                bookingConfirmed = true;
-            }
+
+            booking.Status = Booking.BookingStatus.Confirmed;
+            await _context.SaveChangesAsync();
+            bookingConfirmed = true;
+
 
             if (!bookingConfirmed)
             {
