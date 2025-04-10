@@ -255,5 +255,45 @@ namespace borrow_nest.Controllers
             }
         }
 
+        [HttpGet("history")]
+        [Authorize(Roles = "USER")]
+        public async Task<IActionResult> GetBookingHistory()
+        {
+            try
+            {
+                // Get the logged-in user
+                var currentUser = await _roleChecker.GetCurrentUserAsync();
+                if (currentUser == null)
+                {
+                    return Unauthorized("User must be logged in.");
+                }
+
+                // Fetch bookings filtered by status (Completed or Canceled) for the logged-in user
+                var bookingsHistory = await _context.Bookings
+                    .Where(b => (b.Renter.Id == currentUser.Id || b.Owner.Id == currentUser.Id) &&
+                                (b.Status == Booking.BookingStatus.Completed || b.Status == Booking.BookingStatus.Canceled))
+                    .Include(b => b.Car)
+                    .Include(b => b.Renter)
+                    .Include(b => b.Owner)
+                    .ToListAsync();
+
+                // If no bookings are found
+                if (bookingsHistory == null || bookingsHistory.Count == 0)
+                {
+                    return NotFound("No completed or canceled bookings found.");
+                }
+
+                // Return the list of bookings
+                return Ok(bookingsHistory);
+            }
+            catch (Exception ex)
+            {
+                // Handle any potential errors
+                _logger.LogError($"Error fetching booking history: {ex.Message}");
+                return StatusCode(500, "An error occurred while fetching the booking history.");
+            }
+        }
+
+
     }
 }
