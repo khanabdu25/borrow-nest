@@ -56,6 +56,11 @@ namespace borrow_nest.Controllers
             // Assume Owner info is fetched somehow
             BNUser owner = await _context.BNUsers.FirstOrDefaultAsync(u => u.Id == request.OwnerId);
 
+            if (owner == renter)
+            {
+                return BadRequest("You cannot book your own car.");
+            }
+
             // Create booking
             var booking = new Booking
             {
