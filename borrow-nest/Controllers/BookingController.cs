@@ -16,12 +16,17 @@ namespace borrow_nest.Controllers
 
         private readonly PaymentService _paymentService;
 
-        public BookingController(ILogger<BookingController> logger, BNContext context, RoleCheckerService roleChecker, PaymentService paymentService)
+        private readonly IEmailSender _emailSender;
+
+
+        public BookingController(ILogger<BookingController> logger, BNContext context, RoleCheckerService roleChecker, PaymentService paymentService, IEmailSender emailSender)
         {
             _paymentService = paymentService;
             _logger = logger;
             _context = context;
             _roleChecker = roleChecker;
+            _emailSender = emailSender;
+
         }
 
         [HttpPost("bookcar")]
@@ -73,12 +78,19 @@ namespace borrow_nest.Controllers
                 Status = Booking.BookingStatus.Pending
             };
 
+            var renterObserver = new EmailNotificationObserver(_emailSender, "Renter");
+            var ownerObserver = new EmailNotificationObserver(_emailSender, "Owner");
+
+            booking.RegisterObservers(renterObserver, ownerObserver);
+
             car.Status = CarListing.CarStatus.Booked;
             car.ReservedStartDate = startDateUtc;
             car.ReservedEndDate = endDateUtc;
 
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
+
+            await booking.ChangeStatus(Booking.BookingStatus.Pending);
 
             var fullBooking = await _context.Bookings
                 .Include(b => b.Car)
@@ -133,6 +145,7 @@ namespace borrow_nest.Controllers
             await _context.SaveChangesAsync();
             bookingConfirmed = true;
 
+            await booking.ChangeStatus(Booking.BookingStatus.Confirmed);
 
             if (!bookingConfirmed)
             {
@@ -207,6 +220,8 @@ namespace borrow_nest.Controllers
                 _context.Bookings.Update(booking);
                 _context.CarListings.Update(car);
                 await _context.SaveChangesAsync();
+
+                await booking.ChangeStatus(Booking.BookingStatus.Completed);
 
                 return Ok("Car has been successfully returned and is now available.");
             }
