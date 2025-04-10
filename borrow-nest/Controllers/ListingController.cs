@@ -201,4 +201,36 @@ public class ListingController : ControllerBase
         return Ok($"Listing {request.ListingId} has been returned and is now available.");
     }
 
+    [HttpPut("update/{id}")]
+    [Authorize(Roles = "USER")]
+    public async Task<IActionResult> UpdateCarListing(int id, [FromBody] CreateCarListingRequest request)
+    {
+        try
+        {
+            var carListing = await _context.CarListings.FindAsync(id);
+            if (carListing == null)
+            {
+                return NotFound($"Car listing with ID {id} not found.");
+            }
+
+            // Update the car listing properties
+            carListing.Model = request.Model;
+            carListing.Year = request.Year;
+            carListing.Mileage = request.Mileage;
+            carListing.Location = request.Location;
+            carListing.PricePerDay = request.PricePerDay;
+            carListing.Availability = request.Availability;
+            carListing.PickUpLocation = request.PickUpLocation;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Car listing updated successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update car listing");
+            return StatusCode(500, "Internal server error while updating car listing");
+        }
+    }
+
 }
